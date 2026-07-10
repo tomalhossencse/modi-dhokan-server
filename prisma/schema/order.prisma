@@ -1,0 +1,23 @@
+model Order {
+    id              String @id @default(uuid())
+    userId          String
+    user            User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    items           Json
+    shippingAddress Json
+    paymentMethod   String @default("card")
+    subtotal        Float
+    deliveryFee     Float? @default(0)
+    tax             Float? @default(0)
+    total           Float
+    status          String @default("Placed")
+    statusHistory   Json
+
+    deliveryPartnerId String?
+    deliveryPartner   DeliveryPartner? @relation(fields: [deliveryPartnerId], references: [id], onDelete: SetNull)
+    deliveryOtp       String?          @default("")
+    liveLocation      Json?
+    isPaid            Boolean?         @default(false)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}

@@ -1,0 +1,17 @@
+model Product {
+    id            String   @id @default(uuid())
+    name          String
+    description   String?  @default("")
+    price         Float
+    originalPrice Float?   @default(0)
+    image         String
+    category      String
+    unit          String?  @default("piece")
+    stock         Int?     @default(0)
+    isOrganic     Boolean? @default(false)
+    rating        Float?   @default(0)
+    views         Int      @default(0)
+    reviewCount   Int?     @default(0)
+    createdAt     DateTime @default(now())
+    updatedAt     DateTime @updatedAt
+}
