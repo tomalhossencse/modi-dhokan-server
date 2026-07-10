@@ -40,3 +40,14 @@ export interface IProductCreatePayload {
     isOrganic?: boolean;
     reviewCount?: number;
 }
+export interface IProductUpdatePayload {
+    name: string;
+    price: number;
+    image: string;
+    category: string;
+    description?: string;
+    originalPrice?: number;
+    unit?: string;
+    stock?: number;
+    isOrganic?: boolean;
+}

@@ -54,6 +54,36 @@ class ProductController {
             data: result,
         });
     });
+
+    updateProduct = catchAsync(async (req: Request, res: Response) => {
+        const productId = req.params.id;
+        const payload = req.body;
+
+        const result = await productService.updateProduct(
+            productId as string,
+            payload,
+        );
+
+        sendResponse(res, {
+            success: true,
+            status: httpStatus.OK,
+            message: "Product updated successfully",
+            data: result,
+        });
+    });
+
+    deleteProduct = catchAsync(async (req: Request, res: Response) => {
+        const productId = req.params.id;
+
+        const result = await productService.deleteProduct(productId as string);
+
+        sendResponse(res, {
+            success: true,
+            status: httpStatus.OK,
+            message: "Product deleted successfully",
+            data: result,
+        });
+    });
 }
 
 export default new ProductController();

@@ -93,9 +93,14 @@ class ProductService {
     }
 
     async getProduct(productId: string) {
-        const product = await prisma.product.findUnique({
+        const product = await prisma.product.update({
             where: {
                 id: productId,
+            },
+            data: {
+                views: {
+                    increment: 1,
+                },
             },
         });
 
@@ -113,6 +118,36 @@ class ProductService {
                 : 0;
 
         return { ...product, discount };
+    }
+
+    async updateProduct(productId: string, payload: IProductCreatePayload) {
+        if (!payload || !productId) {
+            throw new Error(
+                "Please provide update data in body and productId in params",
+            );
+        }
+
+        const product = await prisma.product.update({
+            where: {
+                id: productId,
+            },
+            data: payload,
+        });
+
+        return product;
+    }
+    async deleteProduct(productId: string) {
+        if (!productId) {
+            throw new Error("Please provide productId in params");
+        }
+
+        const product = await prisma.product.delete({
+            where: {
+                id: productId,
+            },
+        });
+
+        return product;
     }
 }
 
