@@ -1,13 +1,14 @@
 model User {
-    id        String    @id @default(uuid())
+    id        String     @id @default(uuid())
     name      String
-    email     String    @unique
-    role      Role      @default(CUSTOMER)
+    email     String     @unique
+    role      Role       @default(CUSTOMER)
     password  String
-    phone     String?   @default("")
-    avatar    String?   @default("")
+    status    UserStatus @default(ACTIVE)
+    phone     String?    @default("")
+    avatar    String?    @default("")
     addresses Address[]
     orders    Order[]
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @updatedAt
+    createdAt DateTime   @default(now())
+    updatedAt DateTime   @updatedAt
 }

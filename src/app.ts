@@ -4,6 +4,7 @@ import cors from "cors";
 import { globalErrorHandler } from "./utils/globalError";
 import { notFound } from "./utils/notFound";
 import config from "./config";
+import authRoutes from "./modules/auth/auth.route";
 
 const app: Application = express();
 
@@ -19,8 +20,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.get("/", (req: Request, res: Response) => {
-    res.send("Hello World");
+    res.send("Server is live");
 });
+
+app.use("/api/auth", authRoutes);
 
 app.use(notFound);
 app.use(globalErrorHandler);

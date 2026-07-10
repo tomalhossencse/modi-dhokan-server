@@ -8,6 +8,6 @@ export const notFound = (
 ): void => {
     res.status(httpStatus.NOT_FOUND).json({
         success: false,
-        message: `Route Not Found -  ${req.method} ${req.originalUrl}`,
+        message: `Route Not Found - ${req.method} ${req.originalUrl}`,
     });
 };
