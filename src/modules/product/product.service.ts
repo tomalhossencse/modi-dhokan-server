@@ -136,6 +136,7 @@ class ProductService {
 
         return product;
     }
+
     async deleteProduct(productId: string) {
         if (!productId) {
             throw new Error("Please provide productId in params");
