@@ -51,3 +51,14 @@ export interface IProductUpdatePayload {
     stock?: number;
     isOrganic?: boolean;
 }
+
+export interface ICreateOrderPayload {
+    shippingAddress: any;
+    paymentMethod: string;
+    items: any;
+}
+
+export interface IUpdateOrderStatusPayload {
+    status: string;
+    note?: string;
+}

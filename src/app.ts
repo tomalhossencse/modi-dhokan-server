@@ -7,6 +7,7 @@ import config from "./config";
 import authRoutes from "./modules/auth/auth.route";
 import productRoutes from "./modules/product/product.route";
 import uploadRoutes from "./modules/upload/upload.route";
+import orderRoutes from "./modules/order/order.route";
 
 const app: Application = express();
 
@@ -28,6 +29,7 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/orders", orderRoutes);
 
 app.use(notFound);
 app.use(globalErrorHandler);
