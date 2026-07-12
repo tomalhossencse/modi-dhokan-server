@@ -1,15 +1,15 @@
 model Order {
-    id              String @id @default(uuid())
+    id              String      @id @default(uuid())
     userId          String
-    user            User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
     items           Json
     shippingAddress Json
-    paymentMethod   String @default("card")
+    paymentMethod   String      @default("card")
     subtotal        Float
-    deliveryFee     Float? @default(0)
-    tax             Float? @default(0)
+    deliveryFee     Float?      @default(0)
+    tax             Float?      @default(0)
     total           Float
-    status          String @default("Placed")
+    status          OrderStatus @default(PLACED)
     statusHistory   Json
 
     deliveryPartnerId String?

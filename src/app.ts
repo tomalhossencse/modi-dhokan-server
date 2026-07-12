@@ -8,6 +8,8 @@ import authRoutes from "./modules/auth/auth.route";
 import productRoutes from "./modules/product/product.route";
 import uploadRoutes from "./modules/upload/upload.route";
 import orderRoutes from "./modules/order/order.route";
+import { functions, inngest } from "./inngest";
+import { serve } from "inngest/express";
 
 const app: Application = express();
 
@@ -30,6 +32,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/inngest", serve({ client: inngest, functions }));
 
 app.use(notFound);
 app.use(globalErrorHandler);
