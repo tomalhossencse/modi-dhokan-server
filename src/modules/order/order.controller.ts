@@ -3,7 +3,7 @@ import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status";
 import orderService from "./order.service";
-import { resourceLimits } from "node:worker_threads";
+import { OrderStatus } from "../../../generated/prisma/enums";
 
 class OrderController {
     createOrder = catchAsync(async (req: Request, res: Response) => {
@@ -26,7 +26,7 @@ class OrderController {
 
         const result = await orderService.getCustomerOrders(
             userId,
-            status as string,
+            status as OrderStatus,
         );
         sendResponse(res, {
             success: true,
@@ -40,10 +40,7 @@ class OrderController {
         const orderId = req.params.id;
         const userId = req.user.id;
 
-        const result = await orderService.getCustomerOrders(
-            userId,
-            orderId as string,
-        );
+        const result = await orderService.getOrder(userId, orderId as string);
         sendResponse(res, {
             success: true,
             status: httpStatus.OK,

@@ -2,11 +2,15 @@ import { cron, Inngest } from "inngest";
 import { prisma } from "../lib/prisma";
 import sendEmail from "../config/nodemailer";
 import { OrderStatus } from "../../generated/prisma/enums";
+import config from "../config";
 
 const LOW_STOCK_THRESHOLD = 10;
 
 // Create a client to send and receive events
-export const inngest = new Inngest({ id: "grocery-delivery" });
+export const inngest = new Inngest({
+    id: "grocery-delivery",
+    eventKey: config.inngest_event_key,
+});
 
 // low stock aleart to admin
 const checkLowStock = inngest.createFunction(
@@ -16,13 +20,17 @@ const checkLowStock = inngest.createFunction(
         triggers: [{ event: "inventory/stock.updated" }],
     },
     async ({ event, step }) => {
+        console.log("Low stock function triggered");
         const { productId } = event.data;
-        const product = await step.run("feach-product", async () => {
-            return await prisma.product.findUnique({
+        console.log("Product ID:", productId);
+        const product = await step.run("fetch-product", async () => {
+            const p = await prisma.product.findUnique({
                 where: {
                     id: productId,
                 },
             });
+            console.log("Product:", p);
+            return p;
         });
 
         if (
@@ -30,8 +38,11 @@ const checkLowStock = inngest.createFunction(
             product.stock === null ||
             product.stock >= LOW_STOCK_THRESHOLD
         ) {
+            console.log("Skipped:", product?.stock);
             return { skipped: true, stock: product?.stock };
         }
+
+        console.log("About to send email");
 
         await step.run("send-low-stock-email", async () => {
             const admins = await prisma.user.findMany({
@@ -69,8 +80,8 @@ const checkLowStock = inngest.createFunction(
                         </div>
                 </div>`,
             });
+            console.log("Email sent successfully");
         });
-
         return { aleared: true, product: product.name, stock: product.stock };
     },
 );

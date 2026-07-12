@@ -1,4 +1,6 @@
+import { OrderStatus } from "../../../generated/prisma/enums";
 import { OrderWhereInput } from "../../../generated/prisma/models";
+import { inngest } from "../../inngest";
 import { prisma } from "../../lib/prisma";
 import { ICreateOrderPayload, IUpdateOrderStatusPayload } from "../../types";
 
@@ -58,6 +60,8 @@ class OrderService {
         const total = Math.round(subtotal + deliveryFee + tax);
 
         const transactionResult = await prisma.$transaction(async (tx) => {
+            console.log("Creating order...");
+
             const order = await tx.order.create({
                 data: {
                     userId,
@@ -78,9 +82,12 @@ class OrderService {
                 },
             });
 
+            console.log("Order created");
+
             if (paymentMethod === "card") {
                 //stripe payment link
             }
+            console.log("Updating stock...");
 
             //decrease stock
             for (const item of orderItems) {
@@ -95,14 +102,32 @@ class OrderService {
                     },
                 });
             }
+            console.log("Stock updated");
 
+            console.log("Sending event...");
+
+            // send stock update event for each product in the order
+            for (const item of orderItems) {
+                await inngest.send({
+                    name: "inventory/stock.updated",
+                    data: { productId: item.product },
+                });
+            }
+
+            console.log("Event sent");
+            await inngest.send({
+                name: "order/placed",
+                data: {
+                    orderId: order.id,
+                },
+            });
             return { order };
         });
 
         return transactionResult;
     }
 
-    async getCustomerOrders(userId: string, status: string) {
+    async getCustomerOrders(userId: string, status: OrderStatus) {
         const where: OrderWhereInput = {
             userId,
             NOT: [
@@ -113,7 +138,10 @@ class OrderService {
             ],
         };
 
-        if (status && status !== "all") {
+        if (
+            status
+            // && status !== "all"
+        ) {
             where.status = status;
         }
 

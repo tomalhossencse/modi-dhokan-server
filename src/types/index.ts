@@ -1,4 +1,4 @@
-import { Role, UserStatus } from "../../generated/prisma/enums";
+import { OrderStatus, Role, UserStatus } from "../../generated/prisma/enums";
 
 export interface JwtPayload {
     id: string;
@@ -59,6 +59,6 @@ export interface ICreateOrderPayload {
 }
 
 export interface IUpdateOrderStatusPayload {
-    status: string;
+    status: OrderStatus;
     note?: string;
 }
