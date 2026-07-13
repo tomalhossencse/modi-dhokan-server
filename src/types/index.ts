@@ -1,11 +1,10 @@
-import { OrderStatus, Role, UserStatus } from "../../generated/prisma/enums";
+import { OrderStatus } from "../../generated/prisma/enums";
 
 export interface JwtPayload {
     id: string;
     name: string;
     email: string;
-    role: Role;
-    status: UserStatus;
+    isAdmin?: boolean;
 }
 
 export interface IResisterPayload {

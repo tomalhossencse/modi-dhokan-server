@@ -17,6 +17,16 @@ class AuthService {
         return isMatchPassword;
     }
 
+    getAdminStatus(email: string | null | undefined): boolean {
+        if (!email) return false;
+
+        const adminEmails = config.admin_emials
+            ? config.admin_emials.split(",").map((e) => e.trim().toLowerCase())
+            : [];
+
+        return adminEmails.includes(email.toLowerCase());
+    }
+
     async register(payload: IResisterPayload) {
         const { name, email, password } = payload;
         if (!name || !email || !password) {
@@ -36,7 +46,21 @@ class AuthService {
             },
         });
 
-        return user;
+        const jwtPayload = {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+        } as JwtPayload;
+
+        const { accessToken, refreshToken } = signToken(jwtPayload);
+
+        const userData: any = { ...user };
+
+        delete userData.password;
+
+        userData.isAdmin = this.getAdminStatus(userData.email);
+
+        return { accessToken, refreshToken, user: userData };
     }
 
     async login(payload: ILoginPayload) {
@@ -48,6 +72,9 @@ class AuthService {
         const user = await prisma.user.findUnique({
             where: {
                 email,
+            },
+            include: {
+                addresses: true,
             },
         });
 
@@ -63,19 +90,22 @@ class AuthService {
         if (!isMatchPassword) {
             throw new Error("Your provided password is incorrect!");
         }
+
         const jwtPayload = {
             id: user.id,
             name: user.name,
             email: user.email,
-            role: user.role,
-            status: user.status,
         } as JwtPayload;
 
         const { accessToken, refreshToken } = signToken(jwtPayload);
 
-        const { password: userPassword, ...userinfo } = user;
+        const userData: any = { ...user };
 
-        return { accessToken, refreshToken, userinfo };
+        delete userData.password;
+
+        userData.isAdmin = this.getAdminStatus(userData.email);
+
+        return { accessToken, refreshToken, user: userData };
     }
 }
 

@@ -4,9 +4,9 @@ import { auth } from "../../middlewares/auth";
 
 const addressRoutes = Router();
 
-addressRoutes.get("/", auth("CUSTOMER"), addressController.getUserAddresses);
-addressRoutes.post("/", auth("CUSTOMER"), addressController.addAddress);
-addressRoutes.put("/:id", auth("CUSTOMER"), addressController.updateAddress);
-addressRoutes.delete("/:id", auth("CUSTOMER"), addressController.deleteAddress);
+addressRoutes.get("/", auth, addressController.getUserAddresses);
+addressRoutes.post("/", auth, addressController.addAddress);
+addressRoutes.put("/:id", auth, addressController.updateAddress);
+addressRoutes.delete("/:id", auth, addressController.deleteAddress);
 
 export default addressRoutes;

@@ -14,6 +14,7 @@ class AddressService {
 
         return addresses;
     }
+
     async addAddress(userId: string, payload: ICreateAddressPayload) {
         const { address, city, label, lat, lng, state, zip, isDefault } =
             payload;

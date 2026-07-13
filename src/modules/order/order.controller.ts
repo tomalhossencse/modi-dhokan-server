@@ -8,9 +8,12 @@ import { OrderStatus } from "../../../generated/prisma/enums";
 class OrderController {
     createOrder = catchAsync(async (req: Request, res: Response) => {
         const payload = req.body;
-        const userId = req.user.id;
+        const userId = req.user?.id;
 
-        const { order } = await orderService.createOrder(userId, payload);
+        const { order } = await orderService.createOrder(
+            userId as string,
+            payload,
+        );
 
         sendResponse(res, {
             success: true,
@@ -22,10 +25,10 @@ class OrderController {
 
     getCustomerOrders = catchAsync(async (req: Request, res: Response) => {
         const status = req.query.status;
-        const userId = req.user.id;
+        const userId = req.user?.id;
 
         const result = await orderService.getCustomerOrders(
-            userId,
+            userId as string,
             status as OrderStatus,
         );
         sendResponse(res, {
@@ -38,9 +41,12 @@ class OrderController {
 
     geOrder = catchAsync(async (req: Request, res: Response) => {
         const orderId = req.params.id;
-        const userId = req.user.id;
+        const userId = req.user?.id;
 
-        const result = await orderService.getOrder(userId, orderId as string);
+        const result = await orderService.getOrder(
+            userId as string,
+            orderId as string,
+        );
         sendResponse(res, {
             success: true,
             status: httpStatus.OK,
@@ -78,10 +84,10 @@ class OrderController {
 
     getlOrderLocation = catchAsync(async (req: Request, res: Response) => {
         const orderId = req.params.id;
-        const userId = req.user.id;
+        const userId = req.user?.id;
         const result = await orderService.getOrderLocation(
             orderId as string,
-            userId,
+            userId as string,
         );
         sendResponse(res, {
             success: true,

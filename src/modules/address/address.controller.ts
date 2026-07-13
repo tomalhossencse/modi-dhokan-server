@@ -7,7 +7,7 @@ import addressService from "./address.service";
 class AddressCotroller {
     getUserAddresses = catchAsync(async (req: Request, res: Response) => {
         const userId = req.user?.id;
-        const result = await addressService.getUserAddresses(userId);
+        const result = await addressService.getUserAddresses(userId as string);
         sendResponse(res, {
             success: true,
             status: httpStatus.OK,
@@ -19,7 +19,10 @@ class AddressCotroller {
     addAddress = catchAsync(async (req: Request, res: Response) => {
         const userId = req.user?.id;
         const payload = req.body;
-        const result = await addressService.addAddress(userId, payload);
+        const result = await addressService.addAddress(
+            userId as string,
+            payload,
+        );
         sendResponse(res, {
             success: true,
             status: httpStatus.CREATED,
@@ -34,7 +37,7 @@ class AddressCotroller {
         const addressId = req.params?.id;
         const result = await addressService.updateAddress(
             addressId as string,
-            userId,
+            userId as string,
             payload,
         );
         sendResponse(res, {
@@ -50,7 +53,7 @@ class AddressCotroller {
         const addressId = req.params?.id;
         const result = await addressService.deleteAddress(
             addressId as string,
-            userId,
+            userId as string,
         );
         sendResponse(res, {
             success: true,

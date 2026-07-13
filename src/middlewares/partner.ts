@@ -6,7 +6,7 @@ import { sendResponse } from "../utils/sendResponse";
 import { prisma } from "../lib/prisma";
 import { JwtPayload } from "../types";
 
-export const auth = catchAsync(
+export const partner = catchAsync(
     async (req: Request, res: Response, next: NextFunction) => {
         const accessToken = req.cookies.accessToken
             ? req.cookies.accessToken
@@ -24,23 +24,29 @@ export const auth = catchAsync(
             });
         }
 
-        const user = await prisma.user.findUnique({
+        const partner = await prisma.deliveryPartner.findUnique({
             where: {
                 id: payload.id,
             },
         });
 
-        if (!user) {
+        if (!partner) {
             return sendResponse(res, {
                 success: false,
-                message: "User not Found. Please login again",
+                message: "Delivery Partner not Found. Please login again",
                 status: httpStatus.NOT_FOUND,
             });
         }
 
-        const { id, name, email } = user;
+        if (!partner.isActive) {
+            return sendResponse(res, {
+                success: false,
+                message: "Account is deactivated",
+                status: httpStatus.FORBIDDEN,
+            });
+        }
 
-        req.user = { id, name, email };
+        req.partner = { ...partner };
 
         next();
     },

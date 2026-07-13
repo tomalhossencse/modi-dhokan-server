@@ -2,6 +2,7 @@ import { cron, Inngest } from "inngest";
 import { prisma } from "../lib/prisma";
 import sendEmail from "../config/nodemailer";
 import { OrderStatus } from "../../generated/prisma/enums";
+import config from "../config";
 const LOW_STOCK_THRESHOLD = 10;
 
 // Create a client to send and receive events
@@ -42,13 +43,11 @@ const checkLowStock = inngest.createFunction(
         console.log("About to send email");
 
         await step.run("send-low-stock-email", async () => {
-            const admins = await prisma.user.findMany({
-                where: {
-                    role: "ADMIN",
-                },
-            });
-
-            const adminEmails = admins.map((admin) => admin.email);
+            const adminEmails = config.admin_emials
+                ? config.admin_emials
+                      .split(",")
+                      .map((e) => e.trim().toLowerCase())
+                : [];
 
             if (adminEmails.length === 0)
                 return { skipped: true, reason: "No admin emails" };
