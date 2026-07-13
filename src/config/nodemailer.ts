@@ -6,7 +6,7 @@ import config from ".";
 const transporter = createTransport({
     // host: "smtp-relay.brevo.com",
     // port: 587,
-    // secure: false, // use STARTTLS (upgrade connection to TLS after connecting)
+    // secure: false,
     service: "gmail",
     auth: {
         user: config.smtp_user,
