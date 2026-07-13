@@ -11,6 +11,7 @@ import orderRoutes from "./modules/order/order.route";
 import { functions, inngest } from "./inngest";
 import { serve } from "inngest/express";
 import addressRoutes from "./modules/address/address.route";
+import adminRoutes from "./modules/admin/admin.route";
 
 const app: Application = express();
 
@@ -35,6 +36,7 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/inngest", serve({ client: inngest, functions }));
 app.use("/api/addresses", addressRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.use(notFound);
 app.use(globalErrorHandler);

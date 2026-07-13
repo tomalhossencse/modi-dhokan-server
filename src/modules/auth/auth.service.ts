@@ -4,7 +4,7 @@ import config from "../../config";
 import { prisma } from "../../lib/prisma";
 import { signToken } from "../../utils/jwt";
 class AuthService {
-    private async hashPassword(password: string) {
+    async hashPassword(password: string) {
         const hashedPassword = await bcrypt.hash(
             password,
             Number(config.bcrypt_salt_rounds),
@@ -12,7 +12,7 @@ class AuthService {
         return hashedPassword;
     }
 
-    private async comparePassword(password: string, hashedPassword: string) {
+    async comparePassword(password: string, hashedPassword: string) {
         const isMatchPassword = await bcrypt.compare(password, hashedPassword);
         return isMatchPassword;
     }

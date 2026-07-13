@@ -6,7 +6,7 @@ const addressRoutes = Router();
 
 addressRoutes.get("/", auth("CUSTOMER"), addressController.getUserAddresses);
 addressRoutes.post("/", auth("CUSTOMER"), addressController.addAddress);
-addressRoutes.post("/:id", auth("CUSTOMER"), addressController.updateAddress);
+addressRoutes.put("/:id", auth("CUSTOMER"), addressController.updateAddress);
 addressRoutes.delete("/:id", auth("CUSTOMER"), addressController.deleteAddress);
 
 export default addressRoutes;

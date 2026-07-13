@@ -73,3 +73,17 @@ export interface ICreateAddressPayload {
     lat: number;
     lng: number;
 }
+
+export interface ICreateDeliveryPartner {
+    name: string;
+    email: string;
+    phone: string;
+    password: string;
+    vehicleType?: "bike" | "scooter" | "car";
+}
+export interface IUpdateDeliveryPartner {
+    name: string;
+    phone: string;
+    vehicleType?: "bike" | "scooter" | "car";
+    isActive: boolean;
+}
