@@ -2,14 +2,11 @@ import { cron, Inngest } from "inngest";
 import { prisma } from "../lib/prisma";
 import sendEmail from "../config/nodemailer";
 import { OrderStatus } from "../../generated/prisma/enums";
-import config from "../config";
-
 const LOW_STOCK_THRESHOLD = 10;
 
 // Create a client to send and receive events
 export const inngest = new Inngest({
     id: "grocery-delivery",
-    eventKey: config.inngest_event_key,
 });
 
 // low stock aleart to admin

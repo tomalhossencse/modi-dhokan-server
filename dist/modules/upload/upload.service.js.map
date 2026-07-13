@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../src/modules/upload/upload.service.ts"],"sourcesContent":["class UploadService {}\r\n\r\nexport default new UploadService();\r\n"],"mappings":";;;;;;;;;AAAA,IAAM,gBAAN,MAAoB;AAAC;AAErB,IAAO,yBAAQ,IAAI,cAAc;","names":[]}

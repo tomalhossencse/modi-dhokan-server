@@ -18,7 +18,7 @@ export default {
     cloudinary_api_secret: process.env.CLOUDINARY_API_SECRET!,
     inngest_signing_key: process.env.INNGEST_SIGNING_KEY,
     inngest_event_key: process.env.INNGEST_EVENT_KEY,
-    sender_email: process.env.SENDER_EMAIl!,
+    sender_email: process.env.SENDER_EMAIL!,
     smtp_user: process.env.SMTP_USER!,
     smtp_pass: process.env.SMTP_PASS!,
     ssl_ecomerz_store_id: process.env.SSL_ECOMERZ_STORE_ID!,
