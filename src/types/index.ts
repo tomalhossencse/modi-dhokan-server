@@ -62,3 +62,14 @@ export interface IUpdateOrderStatusPayload {
     status: OrderStatus;
     note?: string;
 }
+
+export interface ICreateAddressPayload {
+    label: string;
+    address: string;
+    city: string;
+    state: string;
+    zip: string;
+    isDefault?: boolean;
+    lat: number;
+    lng: number;
+}
