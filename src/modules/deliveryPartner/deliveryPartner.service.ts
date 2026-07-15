@@ -1,7 +1,8 @@
+import { Order } from "../../../generated/prisma/browser";
 import { OrderStatus } from "../../../generated/prisma/enums";
 import { OrderWhereInput } from "../../../generated/prisma/models";
 import { prisma } from "../../lib/prisma";
-import { ILoginPayload, JwtPayload } from "../../types";
+import { ILoginPayload, IUpdateLocationPayload, JwtPayload } from "../../types";
 import { signToken } from "../../utils/jwt";
 import authService from "../auth/auth.service";
 
@@ -170,6 +171,82 @@ class DeliveryPartnerService {
         });
 
         return updatedOrder;
+    }
+
+    async updateDeliveryStatus(
+        partnerId: string,
+        orderId: string,
+        status: any,
+    ) {
+        if (
+            status &&
+            [OrderStatus.PACKED, OrderStatus.OUT_FOR_DELIVERY].includes(status)
+        ) {
+            throw new Error("Invalid status update!");
+        }
+        const order = await prisma.order.findFirst({
+            where: {
+                id: orderId,
+                deliveryPartnerId: partnerId,
+            },
+        });
+
+        const history = order!.statusHistory as any[];
+
+        history.push({
+            status,
+            note: `Status updated to ${status}`,
+            timestamp: new Date(),
+        });
+
+        const updatedOrder = await prisma.order.update({
+            where: {
+                id: order?.id,
+            },
+            data: {
+                status,
+                statusHistory: history,
+            },
+        });
+
+        return updatedOrder;
+    }
+
+    async updateLocation(
+        partnerId: string,
+        orderId: string,
+        payload: IUpdateLocationPayload,
+    ) {
+        const { lat, lng } = payload;
+
+        const order = await prisma.order.findFirst({
+            where: {
+                id: orderId,
+                deliveryPartnerId: partnerId,
+                status: {
+                    in: [
+                        OrderStatus.ASSIGNED,
+                        OrderStatus.PACKED,
+                        OrderStatus.OUT_FOR_DELIVERY,
+                    ],
+                },
+            },
+        });
+
+        const updatedOrder = await prisma.order.update({
+            where: {
+                id: order!.id,
+            },
+            data: {
+                liveLocation: {
+                    lat,
+                    lng,
+                    updatedAt: new Date(),
+                },
+            },
+        });
+
+        return { success: true };
     }
 }
 

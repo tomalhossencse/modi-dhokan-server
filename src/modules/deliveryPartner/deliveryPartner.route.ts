@@ -35,4 +35,15 @@ deliveryPartnerRoutes.put(
     deliveryPartnerController.cancelDelivery,
 );
 
+deliveryPartnerRoutes.put(
+    "/my-deliveries/:id/status",
+    partner,
+    deliveryPartnerController.updateDeliveryStatus,
+);
+deliveryPartnerRoutes.put(
+    "/my-deliveries/:id/location",
+    partner,
+    deliveryPartnerController.updateLocation,
+);
+
 export default deliveryPartnerRoutes;

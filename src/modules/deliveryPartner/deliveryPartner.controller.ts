@@ -98,6 +98,40 @@ class DeliveryPartnerController {
             data: result,
         });
     });
+
+    updateDeliveryStatus = catchAsync(async (req: Request, res: Response) => {
+        const partnerId = req.partner?.id;
+        const orderId = req.query.id;
+        const { status } = req.body;
+        const result = await deliveryPartnerService.updateDeliveryStatus(
+            partnerId as string,
+            orderId as string,
+            status,
+        );
+        sendResponse(res, {
+            success: true,
+            status: httpStatus.OK,
+            message: "Delivery status updated successfully",
+            data: result,
+        });
+    });
+
+    updateLocation = catchAsync(async (req: Request, res: Response) => {
+        const partnerId = req.partner?.id;
+        const orderId = req.query.id;
+        const payload = req.body;
+        const result = await deliveryPartnerService.updateLocation(
+            partnerId as string,
+            orderId as string,
+            payload,
+        );
+        sendResponse(res, {
+            success: true,
+            status: httpStatus.OK,
+            message: "Delivery Location updated successfully",
+            data: result,
+        });
+    });
 }
 
 export default new DeliveryPartnerController();

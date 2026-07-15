@@ -86,3 +86,8 @@ export interface IUpdateDeliveryPartner {
     vehicleType?: "bike" | "scooter" | "car";
     isActive: boolean;
 }
+
+export interface IUpdateLocationPayload {
+    lat: number;
+    lng: number;
+}
