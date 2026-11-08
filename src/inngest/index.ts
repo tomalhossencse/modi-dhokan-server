@@ -1,61 +1,60 @@
 import { cron, Inngest } from "inngest";
-import { prisma } from "../lib/prisma";
-import sendEmail from "../config/nodemailer";
 import { OrderStatus } from "../../generated/prisma/enums";
 import config from "../config";
+import sendEmail from "../config/nodemailer";
+import { prisma } from "../lib/prisma";
+
 const LOW_STOCK_THRESHOLD = 10;
 
 // Create a client to send and receive events
 export const inngest = new Inngest({
-    id: "grocery-delivery",
+	id: "grocery-delivery",
 });
 
 // low stock aleart to admin
 const checkLowStock = inngest.createFunction(
-    {
-        id: "check-low-stock",
-        name: "Low Stock Alert",
-        triggers: [{ event: "inventory/stock.updated" }],
-    },
-    async ({ event, step }) => {
-        console.log("Low stock function triggered");
-        const { productId } = event.data;
-        console.log("Product ID:", productId);
-        const product = await step.run("fetch-product", async () => {
-            const p = await prisma.product.findUnique({
-                where: {
-                    id: productId,
-                },
-            });
-            console.log("Product:", p);
-            return p;
-        });
+	{
+		id: "check-low-stock",
+		name: "Low Stock Alert",
+		triggers: [{ event: "inventory/stock.updated" }],
+	},
+	async ({ event, step }) => {
+		console.log("Low stock function triggered");
+		const { productId } = event.data;
+		console.log("Product ID:", productId);
+		const product = await step.run("fetch-product", async () => {
+			const p = await prisma.product.findUnique({
+				where: {
+					id: productId,
+				},
+			});
+			console.log("Product:", p);
+			return p;
+		});
 
-        if (
-            !product ||
-            product.stock === null ||
-            product.stock >= LOW_STOCK_THRESHOLD
-        ) {
-            console.log("Skipped:", product?.stock);
-            return { skipped: true, stock: product?.stock };
-        }
+		if (
+			!product ||
+			product.stock === null ||
+			product.stock >= LOW_STOCK_THRESHOLD
+		) {
+			console.log("Skipped:", product?.stock);
+			return { skipped: true, stock: product?.stock };
+		}
 
-        console.log("About to send email");
+		console.log("About to send email");
 
-        await step.run("send-low-stock-email", async () => {
-            const adminEmails = config.admin_emials
-                ? config.admin_emials
-                      .split(",")
-                      .map((e) => e.trim().toLowerCase())
-                : [];
+		await step.run("send-low-stock-email", async () => {
+			const adminEmails = config.admin_emails
+				? config.admin_emails.split(",").map((e) => e.trim().toLowerCase())
+				: [];
 
-            if (adminEmails.length === 0)
-                return { skipped: true, reason: "No admin emails" };
+			if (adminEmails.length === 0)
+				return { skipped: true, reason: "No admin emails" };
 
-            await sendEmail({
-                to: adminEmails.join(","),
-                subject: `Low Stock Alert : ${product.name}`,
-                body: `<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 520px; margin: auto; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden;">
+			await sendEmail({
+				to: adminEmails.join(","),
+				subject: `Low Stock Alert : ${product.name}`,
+				body: `<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 520px; margin: auto; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden;">
                         <div style="background: linear-gradient(135deg, #dc2626, #ef4444); padding: 24px 28px;">
                             <h2 style="color: #fff; margin: 0; font-size: 20px;">Low Stock Alert</h2>
                         </div>
@@ -75,65 +74,65 @@ const checkLowStock = inngest.createFunction(
                             <p style="margin: 20px 0 0; font-size: 13px; color: #9ca3af; text-align: center;">Please restock this item as soon as possible.</p>
                         </div>
                 </div>`,
-            });
-            console.log("Email sent successfully");
-        });
-        return { aleared: true, product: product.name, stock: product.stock };
-    },
+			});
+			console.log("Email sent successfully");
+		});
+		return { aleared: true, product: product.name, stock: product.stock };
+	},
 );
 
 // Monthly offer Email (1st of every month - payday )
 const sendMonthlyOffers = inngest.createFunction(
-    {
-        id: "send-monthly-offers",
-        name: "Monthly Payday Offers",
-        triggers: [cron("0 10 1 * *")],
-    },
-    async ({ step }) => {
-        const { deals, users } = await step.run(
-            "fetch-deals-and-users",
-            async () => {
-                // get top discounted products as feature deals
-                const products = await prisma.product.findMany({
-                    where: {
-                        stock: {
-                            gt: 0,
-                        },
-                    },
-                    orderBy: {
-                        originalPrice: "desc",
-                    },
-                    take: 6,
-                });
+	{
+		id: "send-monthly-offers",
+		name: "Monthly Payday Offers",
+		triggers: [cron("0 10 1 * *")],
+	},
+	async ({ step }) => {
+		const { deals, users } = await step.run(
+			"fetch-deals-and-users",
+			async () => {
+				// get top discounted products as feature deals
+				const products = await prisma.product.findMany({
+					where: {
+						stock: {
+							gt: 0,
+						},
+					},
+					orderBy: {
+						originalPrice: "desc",
+					},
+					take: 6,
+				});
 
-                const allUsers = await prisma.user.findMany({
-                    select: {
-                        name: true,
-                        email: true,
-                    },
-                });
+				const allUsers = await prisma.user.findMany({
+					select: {
+						name: true,
+						email: true,
+					},
+				});
 
-                return { deals: products, users: allUsers };
-            },
-        );
+				return { deals: products, users: allUsers };
+			},
+		);
 
-        if (users.length === 0 || deals.length === 0) {
-            return { skipped: true, reason: "No users or deals" };
-        }
+		if (users.length === 0 || deals.length === 0) {
+			return { skipped: true, reason: "No users or deals" };
+		}
 
-        let sentCount = 0;
+		let sentCount = 0;
 
-        // send in batches of 10 to avoid overwhelming mail server
-        const batchSize = 10;
-        for (let i = 0; i < users.length; i += batchSize) {
-            const batch = users.slice(i, i + batchSize);
+		// send in batches of 10 to avoid overwhelming mail server
+		const batchSize = 10;
+		for (let i = 0; i < users.length; i += batchSize) {
+			const batch = users.slice(i, i + batchSize);
 
-            await step.run(`send-offers-batch-${i}`, async () => {
-                for (const u of batch) {
-                    await sendEmail({
-                        to: u.email,
-                        subject: `Fresh pics just for you`,
-                        body: `
+			await step.run(`send-offers-batch-${i}`, async () => {
+				for (const u of batch) {
+					await sendEmail({
+						to: u.email,
+						subject: `Fresh pics just for you`,
+						body: `
                         <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 520px; margin: auto; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden;">
 
                 <div style="background: linear-gradient(135deg, #f97316, #fb923c); padding: 24px 28px;">
@@ -150,18 +149,18 @@ const sendMonthlyOffers = inngest.createFunction(
 
                     <table width="100%" cellpadding="0" cellspacing="0">
                         ${deals
-                            .reduce((rows: any, _, i: number) => {
-                                if (i % 3 === 0) {
-                                    rows.push(deals.slice(i, i + 3));
-                                }
-                                return rows;
-                            }, [])
-                            .map(
-                                (row: any) => `
+													.reduce((rows: any, _, i: number) => {
+														if (i % 3 === 0) {
+															rows.push(deals.slice(i, i + 3));
+														}
+														return rows;
+													}, [])
+													.map(
+														(row: any) => `
                                 <tr>
                                     ${row
-                                        .map(
-                                            (p: any) => `
+																			.map(
+																				(p: any) => `
                                             <td style="width: 33%; padding: 8px; vertical-align: top;">
                                                 <div style="border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; text-align: center;">
                                                     ${p.image ? `<img src="${p.image}" alt="${p.name}" style="width: 100%; height: 100px; object-fit: cover;" />` : ""}
@@ -176,11 +175,11 @@ const sendMonthlyOffers = inngest.createFunction(
                                                     </div>
                                                 </div>
                                             </td>`,
-                                        )
-                                        .join("")}
+																			)
+																			.join("")}
                                 </tr>`,
-                            )
-                            .join("")}
+													)
+													.join("")}
                     </table>
 
                     <div style="text-align: center; margin-top: 24px;">
@@ -191,119 +190,120 @@ const sendMonthlyOffers = inngest.createFunction(
                     </div>
                 </div>
                         </div>`,
-                    });
-                }
-            });
+					});
+				}
+			});
 
-            sentCount += batch.length;
-        }
-        return { sent: sentCount };
-    },
+			sentCount += batch.length;
+		}
+		return { sent: sentCount };
+	},
 );
 
 // Auto-Assing Rider after 5 mins
 const autoAssignRider = inngest.createFunction(
-    {
-        id: "auto-assign",
-        name: "Auto Assing Delivery Rider",
-        triggers: [
-            {
-                event: "order/placed",
-            },
-        ],
-    },
-    async ({ event, step }) => {
-        const { orderId } = event.data;
-        // wait 5 mins before attempting assingment
-        await step.sleep("wait-5-min", "5m");
+	{
+		id: "auto-assign",
+		name: "Auto Assing Delivery Rider",
+		triggers: [
+			{
+				event: "order/placed",
+			},
+		],
+	},
+	async ({ event, step }) => {
+		const { orderId } = event.data;
+		// wait 5 mins before attempting assingment
+		await step.sleep("wait-5-min", "5m");
 
-        const result = await step.run("assing-Rider", async () => {
-            const order = await prisma.order.findUnique({
-                where: {
-                    id: orderId,
-                },
-            });
+		const result = await step.run("assing-Rider", async () => {
+			const order = await prisma.order.findUnique({
+				where: {
+					id: orderId,
+				},
+			});
 
-            // skip if order doesn't exist , already assinged or cancelled
+			// skip if order doesn't exist , already assinged or cancelled
 
-            if (!order) return { skipped: true, reason: "Order not found" };
-            if (order.deliveryPartnerId)
-                return {
-                    skipped: true,
-                    reason: "Order not found",
-                };
+			if (!order) return { skipped: true, reason: "Order not found" };
+			if (order.deliveryPartnerId)
+				return {
+					skipped: true,
+					reason: "Already assigned",
+				};
 
-            if (["Cancelled", "Delivered"].includes(order.status))
-                return {
-                    skipped: true,
-                    reason: `Order is ${order.status}`,
-                };
+			if (
+				order.status === OrderStatus.CANCELLED ||
+				order.status === OrderStatus.DELIVERED
+			)
+				return {
+					skipped: true,
+					reason: `Order is ${order.status}`,
+				};
 
-            // find and active rider not currently delivering
-            const busyOrders = await prisma.order.findMany({
-                where: {
-                    status: {
-                        in: [
-                            OrderStatus.ASSIGNED,
-                            OrderStatus.PACKED,
-                            OrderStatus.OUT_FOR_DELIVERY,
-                        ],
-                    },
-                    deliveryPartnerId: { not: null },
-                },
-                select: {
-                    deliveryPartnerId: true,
-                },
-            });
+			// find and active rider not currently delivering
+			const busyOrders = await prisma.order.findMany({
+				where: {
+					status: {
+						in: [
+							OrderStatus.ASSIGNED,
+							OrderStatus.PACKED,
+							OrderStatus.OUT_FOR_DELIVERY,
+						],
+					},
+					deliveryPartnerId: { not: null },
+				},
+				select: {
+					deliveryPartnerId: true,
+				},
+			});
 
-            const busyRiderIds = busyOrders.map(
-                (order) => order.deliveryPartnerId,
-            );
+			const busyRiderIds = busyOrders.map((order) => order.deliveryPartnerId);
 
-            const availableRider = await prisma.deliveryPartner.findFirst({
-                where: {
-                    isActive: true,
-                    id: { notIn: busyRiderIds as string[] },
-                },
-            });
+			const availableRider = await prisma.deliveryPartner.findFirst({
+				where: {
+					isActive: true,
+					id: { notIn: busyRiderIds as string[] },
+				},
+			});
 
-            if (!availableRider)
-                return { skipped: true, reason: "No riders available" };
+			if (!availableRider)
+				return { skipped: true, reason: "No riders available" };
 
-            // Generate 6-digit OTP
-            const otp = Math.floor(100000 + Math.random() * 90000).toString();
+			// Generate 6-digit OTP
+			const otp = Math.floor(100000 + Math.random() * 90000).toString();
 
-            const history = (
-                Array.isArray(order.statusHistory) ? order.statusHistory : []
-            ) as any[];
+			const history = (
+				Array.isArray(order.statusHistory) ? order.statusHistory : []
+			) as any[];
 
-            history.push({
-                status: OrderStatus.ASSIGNED,
-                note: `Auto assigned to ${availableRider.name}`,
-                timeStamp: new Date(),
-            });
+			history.push({
+				status: OrderStatus.ASSIGNED,
+				note: `Auto assigned to ${availableRider.name}`,
+				timeStamp: new Date(),
+			});
 
-            await prisma.order.update({
-                where: {
-                    id: orderId,
-                },
-                data: {
-                    deliveryPartnerId: availableRider.id,
-                    deliveryOtp: otp,
-                    status: OrderStatus.ASSIGNED,
-                    statusHistory: history,
-                },
-            });
+			await prisma.order.update({
+				where: {
+					id: orderId,
+				},
+				data: {
+					deliveryPartnerId: availableRider.id,
+					deliveryOtp: otp,
+					status: OrderStatus.ASSIGNED,
+					statusHistory: history,
+				},
+			});
 
-            return {
-                assigned: true,
-                riderId: availableRider.id,
-                riderName: availableRider.name,
-                orderId,
-            };
-        });
-        return result;
-    },
+			return {
+				assigned: true,
+				riderId: availableRider.id,
+				riderName: availableRider.name,
+				orderId,
+			};
+		});
+		return result;
+	},
 );
 
 // Create an empty array where we'll export future Inngest functions
